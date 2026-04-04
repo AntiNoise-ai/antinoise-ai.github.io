@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AntiNoise — Less noise. Better decisions.</title>
+  <meta name="description" content="We turn messy AI setups into something that actually drives results. Build pipelines, manage access and cost, put control in place." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Tokens ── */
+    :root {
+      --bg:            #f5f8fb;
+      --surface:       #ffffff;
+      --text:          #1b2a38;
+      --muted:         #7a8fa2;
+      --faint:         #b4c8d8;
+      --accent:        #5b97c9;
+      --accent-light:  #dbeaf6;
+      --accent-hover:  #4786b8;
+      --border:        #dae6f0;
+      --radius:        10px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════
+       NAV
+    ══════════════════════════════ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      padding: 20px 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(245, 248, 251, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+    nav.scrolled { border-bottom-color: var(--border); }
+
+    .logo { display: flex; flex-direction: column; line-height: 1.25; }
+    .logo-name    { font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
+    .logo-tagline { font-size: 11px; color: var(--muted); font-weight: 300; letter-spacing: 0.02em; }
+
+    .nav-right { display: flex; gap: 10px; align-items: center; }
+
+    /* ══════════════════════════════
+       BUTTONS
+    ══════════════════════════════ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 400;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      border: none;
+      text-decoration: none;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+    .btn-primary  { background: var(--text); color: #fff; }
+    .btn-primary:hover { background: #2b3f55; }
+    .btn-outline  { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--accent-light); border-color: var(--accent); }
+    .btn-accent   { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: var(--accent-hover); }
+    .btn-lg { padding: 13px 26px; font-size: 15px; border-radius: 9px; }
+
+    /* ══════════════════════════════
+       LAYOUT
+    ══════════════════════════════ */
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 110px 60px;
+    }
+    .container.narrow { max-width: 720px; }
+
+    /* ══════════════════════════════
+       HERO
+    ══════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 0 60px;
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    .hero-text { max-width: 580px; position: relative; z-index: 2; padding-top: 80px; }
+
+    .hero h1 {
+      font-size: clamp(2rem, 3.8vw, 3rem);
+      font-weight: 300;
+      line-height: 1.22;
+      letter-spacing: -0.03em;
+      margin-bottom: 28px;
+    }
+    .hero h1 em {
+      font-style: italic;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-weight: 400;
+      color: var(--accent);
+    }
+
+    .hero-bullets {
+      list-style: none;
+      margin-bottom: 44px;
+    }
+    .hero-bullets li {
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 300;
+      padding: 5px 0 5px 20px;
+      position: relative;
+    }
+    .hero-bullets li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--faint);
+    }
+
+    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* Manta ray */
+    .manta-hero {
+      position: absolute;
+      right: -60px;
+      top: 50%;
+      transform: translateY(-48%);
+      width: min(580px, 52vw);
+      opacity: 0.5;
+      pointer-events: none;
+      animation: manta-float 9s ease-in-out infinite;
+    }
+    @keyframes manta-float {
+      0%,100% { transform: translateY(-48%) rotate(-1.5deg); }
+      35%     { transform: translateY(-53%) rotate(0.5deg);  }
+      68%     { transform: translateY(-44%) rotate(-0.8deg); }
+    }
+
+    /* ══════════════════════════════
+       SECTION BASE
+    ══════════════════════════════ */
+    .section { padding: 110px 60px; max-width: 1060px; margin: 0 auto; }
+    .section + .section,
+    .section-divider { border-top: 1px solid var(--border); }
+
+    .label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+    .section-heading {
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 300;
+      letter-spacing: -0.025em;
+      line-height: 1.28;
+      margin-bottom: 56px;
+    }
+    .section-heading strong { font-weight: 500; }
+
+    /* ══════════════════════════════
+       PROBLEM + SOLUTION COLUMNS
+    ══════════════════════════════ */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .col-title {
+      font-size: 19px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 32px;
+      color: var(--text);
+    }
+
+    .sketch-list { list-style: none; }
+    .sketch-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 10px 0;
+      font-size: 15px;
+      font-weight: 300;
+      border-bottom: 1px solid var(--border);
+    }
+    .sketch-list li:first-child { border-top: 1px solid var(--border); }
+    .sketch-list.pain li { color: var(--muted); }
+    .sketch-list.solve li { color: var(--text); }
+
+    .sketch-list .dot {
+      flex-shrink: 0;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      margin-top: 7px;
+    }
+    .sketch-list.pain .dot  { background: var(--faint); }
+    .sketch-list.solve .dot { background: var(--accent); }
+
+    /* ══════════════════════════════
+       MANTA DIVIDER
+    ══════════════════════════════ */
+    .manta-between {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 48px;
+      opacity: 0.28;
+    }
+
+    /* ══════════════════════════════
+       CONTACT
+    ══════════════════════════════ */
+    .contact-inner {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .contact-inner .section-heading {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .contact-inner .label { text-align: center; }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 40px;
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 300;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: vertical;
+    }
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91, 151, 201, 0.12);
+    }
+    .field textarea { min-height: 120px; }
+
+    .form-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
+
+    .contact-success {
+      text-align: center;
+      padding: 48px 0;
+      display: none;
+    }
+    .contact-success h3 { font-size: 1.2rem; font-weight: 400; margin-bottom: 8px; }
+    .contact-success p  { font-size: 14px; color: var(--muted); font-weight: 300; }
+
+    /* ══════════════════════════════
+       FOOTER
+    ══════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 36px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    /* ══════════════════════════════
+       MODAL
+    ══════════════════════════════ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 30, 45, 0.45);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 44px 48px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 92vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(14px) scale(0.99);
+      transition: transform 0.22s ease;
+    }
+    .overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal.wide { max-width: 660px; }
+
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 18px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close:hover { background: var(--accent-light); color: var(--text); }
+
+    .modal h2 {
+      font-size: 1.35rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .modal-sub {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 300;
+      margin-bottom: 32px;
+    }
+    .modal-form { display: flex; flex-direction: column; gap: 14px; }
+
+    .modal-success {
+      text-align: center;
+      padding: 40px 0;
+      display: none;
+    }
+    .modal-success h3 { font-size: 1.1rem; font-weight: 400; margin-bottom: 8px; }
+    .modal-success p  { font-size: 14px; color: var(--muted); font-weight: 300; }
+
+    /* Cal.com container */
+    #cal-container {
+      width: 100%;
+      min-height: 480px;
+      margin-top: 24px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #cal-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 300;
+      text-align: center;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 32px;
+      margin-top: 24px;
+    }
+    #cal-placeholder a { color: var(--accent); text-decoration: none; }
+    #cal-placeholder a:hover { text-decoration: underline; }
+
+    /* ══════════════════════════════
+       FADE IN ON SCROLL
+    ══════════════════════════════ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ══════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════ */
+    @media (max-width: 900px) {
+      nav, .hero, .section { padding-left: 32px; padding-right: 32px; }
+      .two-col { grid-template-columns: 1fr; gap: 48px; }
+      .manta-hero { width: 340px; right: -20px; opacity: 0.3; }
+      footer { padding: 28px 32px; }
+    }
+    @media (max-width: 640px) {
+      nav { padding: 16px 24px; }
+      .nav-right .btn-outline { display: none; }
+      .hero, .section { padding-left: 24px; padding-right: 24px; }
+      .hero { min-height: auto; padding-top: 100px; padding-bottom: 60px; align-items: flex-start; }
+      .manta-hero { display: none; }
+      .modal { padding: 32px 28px; }
+      footer { flex-direction: column; gap: 10px; text-align: center; padding: 24px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════
+       NAV
+  ══════════════════════════════ -->
+  <nav id="nav">
+    <div class="logo">
+      <span class="logo-name">AntiNoise</span>
+      <span class="logo-tagline">Less noise. Better decisions.</span>
+    </div>
+    <div class="nav-right">
+      <button class="btn btn-outline" onclick="openBooking()">Book a call</button>
+      <button class="btn btn-primary" onclick="openAudit()">Get a free audit</button>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════
+       HERO
+  ══════════════════════════════ -->
+  <div style="position:relative; overflow:hidden;">
+    <div class="hero">
+      <div class="hero-text">
+        <h1>We turn your messy AI setup into something that <em>actually drives results</em></h1>
+        <ul class="hero-bullets">
+          <li>Build AI pipelines that drive real outcomes</li>
+          <li>Manage AI access, usage, and cost across your team</li>
+        </ul>
+        <div class="hero-ctas">
+          <button class="btn btn-primary btn-lg" onclick="openAudit()">Get a free AI audit</button>
+          <button class="btn btn-outline btn-lg" onclick="openBooking()">Book a quick call</button>
+        </div>
+      </div>
+
+      <!-- ── Manta Ray SVG ── -->
+      <div class="manta-hero" aria-hidden="true">
+        <svg viewBox="0 0 580 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Subtle body fill -->
+          <path d="M290 102 C258 88 188 92 118 116 C68 134 24 156 20 170 C16 184 56 182 102 174 C155 165 212 173 290 194 C368 173 425 165 478 174 C524 182 564 184 560 170 C556 156 512 134 462 116 C392 92 322 88 290 102 Z" fill="#bbd8ee" opacity="0.22"/>
+
+          <!-- Wing outline — upper left arc -->
+          <path d="M287 100 C255 87 185 91 114 115 C64 133 22 155 18 170" stroke="#5b97c9" stroke-width="1.9" stroke-linecap="round" fill="none" opacity="0.72"/>
+          <!-- Wing outline — lower left arc back to body -->
+          <path d="M18 170 C22 185 62 183 104 175 C157 166 213 174 287 195" stroke="#5b97c9" stroke-width="1.9" stroke-linecap="round" fill="none" opacity="0.72"/>
+          <!-- Wing outline — upper right arc -->
+          <path d="M293 100 C325 87 395 91 466 115 C516 133 558 155 562 170" stroke="#5b97c9" stroke-width="1.9" stroke-linecap="round" fill="none" opacity="0.72"/>
+          <!-- Wing outline — lower right arc back to body -->
+          <path d="M562 170 C558 185 518 183 476 175 C423 166 367 174 293 195" stroke="#5b97c9" stroke-width="1.9" stroke-linecap="round" fill="none" opacity="0.72"/>
+
+          <!-- Cephalic fins (head horns) -->
+          <path d="M268 103 C256 91 244 79 237 70" stroke="#5b97c9" stroke-width="1.6" stroke-linecap="round" opacity="0.68"/>
+          <path d="M312 103 C324 91 336 79 343 70" stroke="#5b97c9" stroke-width="1.6" stroke-linecap="round" opacity="0.68"/>
+
+          <!-- Head closure (subtle line connecting cephalic fins) -->
+          <path d="M237 70 C254 66 268 65 290 64 C312 65 326 66 343 70" stroke="#5b97c9" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
+
+          <!-- Tail -->
+          <path d="M290 195 C294 213 302 230 312 252 C316 263 316 272 313 278" stroke="#5b97c9" stroke-width="1.6" stroke-linecap="round" opacity="0.65"/>
+
+          <!-- Body center ridge (dashed) -->
+          <path d="M290 104 L290 195" stroke="#5b97c9" stroke-width="0.8" stroke-dasharray="3 7" opacity="0.28"/>
+
+          <!-- Body texture arcs -->
+          <path d="M248 146 C266 140 290 142 314 146" stroke="#5b97c9" stroke-width="1" opacity="0.38"/>
+          <path d="M232 160 C256 153 290 155 324 160" stroke="#5b97c9" stroke-width="1" opacity="0.32"/>
+          <path d="M240 173 C262 167 290 169 318 173" stroke="#5b97c9" stroke-width="1" opacity="0.26"/>
+
+          <!-- Eyes -->
+          <circle cx="256" cy="124" r="4" fill="#5b97c9" opacity="0.55"/>
+          <circle cx="256" cy="124" r="1.8" fill="#5b97c9" opacity="0.9"/>
+          <circle cx="324" cy="124" r="4" fill="#5b97c9" opacity="0.55"/>
+          <circle cx="324" cy="124" r="1.8" fill="#5b97c9" opacity="0.9"/>
+
+          <!-- Wing-tip sketch ticks -->
+          <path d="M18 166 C16 162 15 158 16 154" stroke="#5b97c9" stroke-width="1.1" stroke-linecap="round" opacity="0.38"/>
+          <path d="M562 166 C564 162 565 158 564 154" stroke="#5b97c9" stroke-width="1.1" stroke-linecap="round" opacity="0.38"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PROBLEM + SOLUTION (two-col)
+  ══════════════════════════════ -->
+  <div class="section-divider"></div>
+  <div class="section reveal">
+    <div class="two-col">
+
+      <!-- Left: problem -->
+      <div>
+        <p class="col-title">most AI setups feel like this:</p>
+        <ul class="sketch-list pain">
+          <li><span class="dot"></span>tools everywhere, no clear system</li>
+          <li><span class="dot"></span>no idea who is using what</li>
+          <li><span class="dot"></span>costs growing without control</li>
+          <li><span class="dot"></span>automations breaking silently</li>
+          <li><span class="dot"></span>experiments that go nowhere</li>
+        </ul>
+      </div>
+
+      <!-- Right: solution -->
+      <div>
+        <p class="col-title">we make it simple:</p>
+        <ul class="sketch-list solve">
+          <li><span class="dot"></span>clean up your setup</li>
+          <li><span class="dot"></span>build what actually matters</li>
+          <li><span class="dot"></span>put control in place</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       CONTACT / FINAL CTA
+  ══════════════════════════════ -->
+  <div class="section-divider"></div>
+  <div class="section reveal" id="contact">
+    <div class="contact-inner">
+      <h2 class="section-heading">ready to fix?</h2>
+      <p class="col-title" style="text-align:center; margin-bottom: 28px;">contact</p>
+
+      <form class="contact-form" id="contactForm" onsubmit="handleContact(event)">
+        <div class="field">
+          <input type="email" id="c-email" name="email" placeholder="your email" required />
+        </div>
+        <div class="field">
+          <textarea id="c-msg" name="message" placeholder="write your message here…" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg" style="align-self:stretch;">Get in touch</button>
+      </form>
+
+      <div class="contact-success" id="contactSuccess">
+        <h3>thanks — we'll be in touch.</h3>
+        <p>expect a response within one business day.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       FOOTER
+  ══════════════════════════════ -->
+  <footer>
+    <span>© 2025 AntiNoise</span>
+    <span>less noise. better decisions.</span>
+  </footer>
+
+  <!-- ══════════════════════════════
+       AUDIT MODAL
+  ══════════════════════════════ -->
+  <div class="overlay" id="auditOverlay" onclick="overlayClose(event,'auditOverlay')">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="auditTitle">
+      <button class="modal-close" onclick="closeModal('auditOverlay')" aria-label="Close">×</button>
+      <h2 id="auditTitle">get a free AI audit</h2>
+      <p class="modal-sub">tell us about your setup — we'll come prepared.</p>
+
+      <form class="modal-form" id="auditForm" onsubmit="handleAudit(event)">
+        <div class="field">
+          <label>name</label>
+          <input type="text" name="name" placeholder="your name" required />
+        </div>
+        <div class="field">
+          <label>email</label>
+          <input type="email" name="email" placeholder="you@company.com" required />
+        </div>
+        <div class="field">
+          <label>company</label>
+          <input type="text" name="company" placeholder="your company" required />
+        </div>
+        <div class="field">
+          <label>website <span style="color:var(--faint)">(optional)</span></label>
+          <input type="url" name="website" placeholder="https://..." />
+        </div>
+        <div class="field">
+          <label>what feels messy in your AI setup?</label>
+          <textarea name="aiMess" placeholder="Multiple tools, unclear ownership, runaway costs — describe it in your words…" required style="min-height:90px"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">submit → then book your slot</button>
+      </form>
+
+      <div class="modal-success" id="auditSuccess">
+        <h3>submitted — opening booking…</h3>
+        <p>you'll be redirected to pick a time in a moment.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       BOOKING MODAL
+  ══════════════════════════════ -->
+  <div class="overlay" id="bookingOverlay" onclick="overlayClose(event,'bookingOverlay')">
+    <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
+      <button class="modal-close" onclick="closeModal('bookingOverlay')" aria-label="Close">×</button>
+      <h2 id="bookingTitle">book a quick call</h2>
+      <p class="modal-sub">30 minutes · no slides · just your setup and what's not working</p>
+
+      <!--
+        Cal.com inline embed.
+        To activate: replace YOUR_CAL_USERNAME below with your Cal.com username.
+        Event type should be named "quick-call" in your Cal.com dashboard.
+        Cal.com will auto-detect timezone and avoid double booking.
+        Connect Google Calendar in Cal.com settings to get auto-generated Meet links.
+      -->
+      <div id="cal-container"></div>
+      <div id="cal-placeholder">
+        <p>booking calendar not yet configured.</p>
+        <p>replace <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">YOUR_CAL_USERNAME</code> in the page source with your Cal.com username.</p>
+        <p style="margin-top:8px;"><a href="https://cal.com/signup" target="_blank" rel="noopener">create a free Cal.com account →</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       SCRIPTS
+  ══════════════════════════════ */
+  <script>
+
+    /* ── Configuration — edit these ──────────────────────────── */
+    const CONFIG = {
+      calUsername:       'YOUR_CAL_USERNAME',  // your Cal.com username
+      calEventSlug:      'quick-call',          // event type slug in Cal.com
+      formspreeAudit:    'YOUR_FORMSPREE_ID',   // formspree.io form ID for audit
+      formspreeContact:  'YOUR_CONTACT_ID',     // formspree.io form ID for contact
+      yourEmail:         'hello@antinoise.co',  // fallback mailto address
+    };
+    /* ────────────────────────────────────────────────────────── */
+
+    /* ── Nav scroll ── */
+    const $nav = document.getElementById('nav');
+    window.addEventListener('scroll', () =>
+      $nav.classList.toggle('scrolled', window.scrollY > 24), { passive: true });
+
+    /* ── Scroll reveal ── */
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    /* ── Modal helpers ── */
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function overlayClose(e, id) {
+      if (e.target === e.currentTarget) closeModal(id);
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeModal('auditOverlay');
+        closeModal('bookingOverlay');
+      }
+    });
+
+    /* ── Audit flow ── */
+    function openAudit() { openModal('auditOverlay'); }
+
+    async function handleAudit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn  = form.querySelector('button[type="submit"]');
+      const data = new FormData(form);
+      btn.textContent = 'submitting…';
+      btn.disabled = true;
+
+      const isConfigured = CONFIG.formspreeAudit !== 'YOUR_FORMSPREE_ID';
+
+      try {
+        if (isConfigured) {
+          const res = await fetch(`https://formspree.io/f/${CONFIG.formspreeAudit}`, {
+            method: 'POST', body: data, headers: { Accept: 'application/json' }
+          });
+          if (!res.ok) throw new Error();
+        }
+        // Show success then cross-open booking
+        document.getElementById('auditForm').style.display = 'none';
+        document.getElementById('auditSuccess').style.display = 'block';
+        setTimeout(() => {
+          closeModal('auditOverlay');
+          document.getElementById('auditForm').style.display = '';
+          document.getElementById('auditSuccess').style.display = 'none';
+          btn.textContent = 'submit → then book your slot';
+          btn.disabled = false;
+          form.reset();
+          openBooking();
+        }, 1400);
+      } catch {
+        btn.textContent = 'submit → then book your slot';
+        btn.disabled = false;
+        alert('Something went wrong. Please email us at ' + CONFIG.yourEmail);
+      }
+    }
+
+    /* ── Booking flow ── */
+    let calInited = false;
+
+    function openBooking() {
+      openModal('bookingOverlay');
+      if (!calInited) { initCal(); calInited = true; }
+    }
+
+    function initCal() {
+      const isConfigured = CONFIG.calUsername !== 'YOUR_CAL_USERNAME';
+      if (!isConfigured) return; // leave placeholder visible
+
+      document.getElementById('cal-placeholder').style.display = 'none';
+
+      if (typeof Cal !== 'undefined') {
+        Cal('inline', {
+          elementOrSelector: '#cal-container',
+          calLink: `${CONFIG.calUsername}/${CONFIG.calEventSlug}`,
+          layout: 'month_view',
+        });
+      } else {
+        // Cal script not yet loaded — show iframe fallback
+        const link = `https://cal.com/${CONFIG.calUsername}/${CONFIG.calEventSlug}?embed=true`;
+        document.getElementById('cal-container').innerHTML =
+          `<iframe src="${link}" style="width:100%;height:480px;border:none;border-radius:8px;" allow="camera; microphone; fullscreen; payment; autoplay;"></iframe>`;
+      }
+    }
+
+    /* ── Contact form ── */
+    async function handleContact(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn  = form.querySelector('button[type="submit"]');
+      const data = new FormData(form);
+      btn.textContent = 'sending…';
+      btn.disabled = true;
+
+      const isConfigured = CONFIG.formspreeContact !== 'YOUR_CONTACT_ID';
+
+      try {
+        if (isConfigured) {
+          const res = await fetch(`https://formspree.io/f/${CONFIG.formspreeContact}`, {
+            method: 'POST', body: data, headers: { Accept: 'application/json' }
+          });
+          if (!res.ok) throw new Error();
+          showContactSuccess();
+        } else {
+          // Fallback: open mailto
+          const email  = data.get('email')   || '';
+          const msg    = data.get('message') || '';
+          window.location.href =
+            `mailto:${CONFIG.yourEmail}?subject=AntiNoise%20enquiry&body=${encodeURIComponent('From: ' + email + '\n\n' + msg)}`;
+          showContactSuccess();
+        }
+      } catch {
+        btn.textContent = 'Get in touch';
+        btn.disabled = false;
+        alert('Something went wrong. Please email us directly at ' + CONFIG.yourEmail);
+      }
+    }
+
+    function showContactSuccess() {
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('contactSuccess').style.display = 'block';
+    }
+
+  </script>
+
+  <!--
+    Cal.com embed script — loads asynchronously.
+    No action needed here unless you want to pass custom branding.
+    Set CONFIG.calUsername above.
+  -->
+  <script type="text/javascript" async>
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal, ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {}; cal.q = cal.q || [];
+          const s = d.createElement('script'); s.src = A; s.async = true;
+          d.head.appendChild(s);
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const ns  = ar[1]; api.q = api.q || [];
+          if (typeof ns === 'string') {
+            cal.ns[ns] = cal.ns[ns] || api; p(cal.ns[ns], ar); p(cal, ['-s', ns]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, 'https://app.cal.com/embed/embed.js', 'init');
+    Cal('init', { origin: 'https://cal.com' });
+    Cal('ui', {
+      styles: { branding: { brandColor: '#5b97c9' } },
+      hideEventTypeDetails: false,
+      layout: 'month_view',
+    });
+  </script>
+
+</body>
+</html>
