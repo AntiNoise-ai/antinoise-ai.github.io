@@ -328,6 +328,18 @@
       margin-bottom: 56px;
     }
     .section-heading strong { font-weight: 500; }
+    .heading-lg {
+      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+      white-space: nowrap;
+    }
+    .heading-lg em {
+      font-style: italic;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-weight: 400;
+      font-size: 1.03em;
+      letter-spacing: -0.005em;
+      color: var(--accent);
+    }
 
     /* ══════════════════════════════
        PROBLEM + SOLUTION COLUMNS
@@ -859,7 +871,7 @@
   <div class="section-divider"></div>
   <div class="section reveal">
     <span class="label">offboarding, automated</span>
-    <h2 class="section-heading">What actually happens<br><strong>when someone leaves</strong></h2>
+    <h2 class="section-heading heading-lg">What actually happens <em>when someone leaves</em></h2>
 
     <div class="slack-demo-wrap">
       <div class="slack-window">
@@ -987,7 +999,7 @@
   <div class="section-divider"></div>
   <div class="section reveal" id="contact">
     <div class="contact-inner">
-      <h2 class="section-heading">ready to fix?</h2>
+      <h2 class="section-heading">Book a free audit</h2>
       <p class="col-title" style="text-align:center; margin-bottom: 28px;">contact</p>
 
       <form class="contact-form" id="contactForm" onsubmit="handleContact(event)">
